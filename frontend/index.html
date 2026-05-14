@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ResumeScreen AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+ 
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-icon">RS</div>
+      <div>
+        <div class="logo-title">ResumeScreen <span class="accent">AI</span></div>
+        <div class="logo-sub">NLP-Powered Candidate Ranking System</div>
+      </div>
+    </div>
+    <div class="status-pill" id="statusPill">
+      <span class="status-dot"></span> API Connected
+    </div>
+  </header>
+ 
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab active" data-tab="screen">
+      <span class="tab-icon">◈</span> Single Screen
+    </button>
+    <button class="tab" data-tab="rank">
+      <span class="tab-icon">◉</span> Rank Candidates
+    </button>
+  </div>
+ 
+  <main class="main">
+ 
+    <!-- ===================== SCREEN TAB ===================== -->
+    <section class="tab-content active" id="tab-screen">
+      <div class="section-header">
+        <h2>Resume Analyzer</h2>
+        <p>Upload a single resume and paste the job description to get an AI-powered match score</p>
+      </div>
+ 
+      <div class="upload-grid">
+        <!-- Resume Upload -->
+        <div class="upload-card" id="resumeZone" onclick="document.getElementById('resumeInput').click()">
+          <input type="file" id="resumeInput" accept=".pdf,.docx,.txt" hidden/>
+          <div class="upload-icon-wrap purple">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <div class="upload-label">Resume</div>
+          <div class="upload-hint">PDF, DOCX or TXT</div>
+          <div class="upload-formats">
+            <span class="fmt">.pdf</span><span class="fmt">.docx</span><span class="fmt">.txt</span>
+          </div>
+          <div class="file-name" id="resumeFileName"></div>
+        </div>
+ 
+        <!-- JD Input -->
+        <div class="jd-card">
+          <div class="jd-header">
+            <div class="upload-icon-wrap blue">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            </div>
+            <div>
+              <div class="upload-label">Job Description</div>
+              <div class="upload-hint">Paste JD text below</div>
+            </div>
+          </div>
+          <textarea id="jdText" placeholder="Paste the job description here...&#10;&#10;e.g. We are looking for a Python developer with Machine Learning and NLP experience..."></textarea>
+        </div>
+      </div>
+ 
+      <div class="action-row">
+        <button class="btn-primary" id="analyzeBtn">
+          <span id="analyzeBtnText">Analyze Resume</span>
+          <span class="btn-arrow">→</span>
+        </button>
+        <button class="btn-ghost" id="clearScreenBtn">Clear</button>
+      </div>
+ 
+      <!-- Loading -->
+      <div class="loading-wrap" id="screenLoading">
+        <div class="loading-bar"><div class="loading-fill" id="screenFill"></div></div>
+        <div class="loading-text">Analyzing resume with NLP models...</div>
+      </div>
+ 
+      <!-- Results -->
+      <div class="results-wrap" id="screenResults">
+ 
+        <!-- Verdict Banner -->
+        <div class="verdict-banner" id="verdictBanner">
+          <div class="verdict-icon" id="verdictIcon">✦</div>
+          <div>
+            <div class="verdict-title" id="verdictTitle">Good Match</div>
+            <div class="verdict-text" id="verdictText">Candidate meets key requirements</div>
+          </div>
+          <div class="verdict-score" id="verdictScore">0%</div>
+        </div>
+ 
+        <!-- Score Cards -->
+        <div class="score-grid">
+          <div class="score-card">
+            <div class="score-label">Overall Match</div>
+            <div class="score-value" id="sc-final">—</div>
+            <div class="score-bar"><div class="score-fill purple-fill" id="bar-final"></div></div>
+          </div>
+          <div class="score-card">
+            <div class="score-label">Context Match</div>
+            <div class="score-value" id="sc-semantic">—</div>
+            <div class="score-bar"><div class="score-fill blue-fill" id="bar-semantic"></div></div>
+          </div>
+          <div class="score-card">
+            <div class="score-label">Content Match</div>
+            <div class="score-value" id="sc-tfidf">—</div>
+            <div class="score-bar"><div class="score-fill teal-fill" id="bar-tfidf"></div></div>
+          </div>
+          <div class="score-card">
+            <div class="score-label">Skills Match</div>
+            <div class="score-value" id="sc-keyword">—</div>
+            <div class="score-bar"><div class="score-fill amber-fill" id="bar-keyword"></div></div>
+          </div>
+        </div>
+ 
+        <!-- Skills -->
+        <div class="skills-grid">
+          <div class="skill-card">
+            <div class="skill-card-header">
+              <span class="skill-card-title">Matched Skills</span>
+              <span class="badge green" id="matchedCount">0</span>
+            </div>
+            <div class="chip-list" id="matchedSkills"></div>
+          </div>
+          <div class="skill-card">
+            <div class="skill-card-header">
+              <span class="skill-card-title">Missing Skills</span>
+              <span class="badge red" id="missingCount">0</span>
+            </div>
+            <div class="chip-list" id="missingSkills"></div>
+          </div>
+        </div>
+ 
+      </div>
+    </section>
+ 
+    <!-- ===================== RANK TAB ===================== -->
+    <section class="tab-content" id="tab-rank">
+      <div class="section-header">
+        <h2>Candidate Ranker</h2>
+        <p>Upload multiple resumes against one job description — get a ranked leaderboard instantly</p>
+      </div>
+ 
+      <div class="rank-jd-wrap">
+        <label class="field-label">Job Description</label>
+        <textarea id="rankJdText" placeholder="Paste the job description here..."></textarea>
+      </div>
+ 
+      <div class="rank-upload-wrap">
+        <label class="field-label">Upload Resumes <span class="hint-text">(select multiple files)</span></label>
+        <div class="multi-upload-zone" id="multiUploadZone" onclick="document.getElementById('multiResumeInput').click()">
+          <input type="file" id="multiResumeInput" accept=".pdf,.docx,.txt" multiple hidden/>
+          <div class="multi-upload-icon">⊕</div>
+          <div class="multi-upload-text">Click to select resumes</div>
+          <div class="multi-upload-hint">PDF, DOCX, TXT — select multiple</div>
+        </div>
+        <div class="file-list" id="fileList"></div>
+      </div>
+ 
+      <div class="action-row">
+        <button class="btn-primary" id="rankBtn">
+          <span id="rankBtnText">Rank Candidates</span>
+          <span class="btn-arrow">→</span>
+        </button>
+        <button class="btn-ghost" id="clearRankBtn">Clear</button>
+      </div>
+ 
+      <!-- Loading -->
+      <div class="loading-wrap" id="rankLoading">
+        <div class="loading-bar"><div class="loading-fill" id="rankFill"></div></div>
+        <div class="loading-text">Scoring all candidates...</div>
+      </div>
+ 
+      <!-- Ranking Table -->
+      <div class="rank-results" id="rankResults">
+        <div class="rank-table-header">
+          <span>Rank</span>
+          <span>Candidate</span>
+          <span>Semantic</span>
+          <span>TF-IDF</span>
+          <span>Keyword</span>
+          <span>Final Score</span>
+          <span>Verdict</span>
+        </div>
+        <div id="rankTableBody"></div>
+      </div>
+ 
+    </section>
+ 
+  </main>
+ 
+  <footer class="footer">
+    AI-Based Resume Screening & Candidate Ranking System · Minor Project · NLP
+  </footer>
+ 
+  <script src="app.js"></script>
+</body>
+</html>
+ 
